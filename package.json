@@ -1,0 +1,12 @@
+{
+  "name": "experimental-server",
+  "version": "0.0.1",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "pouchdb": "^6.1.2",
+    "pouchdb-find": "^0.10.5",
+    "ramda": "^0.23.0",
+    "sleep": "^5.1.1"
+  }
+}
