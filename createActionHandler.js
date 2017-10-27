@@ -47,8 +47,19 @@ const createActionHandler = actionHandlers => {
 			const relevantDocsToAdd = notAppliedOnDocIds.filter(docId => {
 				return action.doc._id === docId && !action.doc._rev
 			}).map(docId => {
-				return {type: action.doc.type}
+				return {_id: docId, type: action.doc.type}
 			});
+
+      if(relevantDocsToAdd.length > 0){
+        for(d of relevantDocsToAdd){
+          const doc = await publicDb.get(d._id);
+          if(doc && doc._rev){
+            throw "Already added doc";
+          }
+        }
+      }
+
+
 			const relevantDocsToUpdate = (await publicDb.allDocs({
 				include_docs: true,
 				keys: notAppliedOnDocIds.filter(docId => action.doc._id !== docId || action.doc._rev)
