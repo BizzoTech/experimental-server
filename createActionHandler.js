@@ -52,10 +52,15 @@ const createActionHandler = actionHandlers => {
 
       if(relevantDocsToAdd.length > 0){
         for(d of relevantDocsToAdd){
-          const doc = await publicDb.get(d._id);
-          if(doc && doc._rev){
-            throw "Already added doc";
-          }
+          await publicDb.get(d._id).then(doc => {
+            if(doc && doc._rev){
+              throw "Already added doc";
+            }
+          }).catch(e => {
+            if(e === "Already added doc"){
+              throw e;
+            }
+          })
         }
       }
 
