@@ -1,11 +1,11 @@
 const R = require('ramda');
 const {runFor} = require('./utils');
-const {mainDb, publicDb} = require('./config');
+const {eventsDb, publicDb} = require('./config');
 
 const createPreProcessor = (preProcessorName, updateEvent) => {
 
 	const getEventsWaitingForPreProcessing = async() => {
-		const result = await mainDb.find({
+		const result = await eventsDb.find({
 			selector: {
 				type: "EVENT",
 				status: "preProcessing",
@@ -21,7 +21,7 @@ const createPreProcessor = (preProcessorName, updateEvent) => {
 	}
 
 	const markActionAsError = (event, err) => {
-		return mainDb.put(R.merge(event, {
+		return eventsDb.put(R.merge(event, {
 			status: "error",
 			error: err
 		}));
@@ -40,7 +40,7 @@ const createPreProcessor = (preProcessorName, updateEvent) => {
 			const currentPreProcessorIndex = event.preProcessors.indexOf(currentPreProcessor);
 			const updatedPreProcessor = R.merge(currentPreProcessor, {status: "done"});
 			const preProcessors = R.update(currentPreProcessorIndex, updatedPreProcessor, event.preProcessors);
-			await mainDb.put(R.merge(updatedEvent, {preProcessors}));
+			await eventsDb.put(R.merge(updatedEvent, {preProcessors}));
 		} catch (e) {
 			console.log(e);
 			await markActionAsError(event, e);
@@ -57,7 +57,7 @@ const createPreProcessor = (preProcessorName, updateEvent) => {
       await handleEvent(event);
     }
 	}
-  
+
 	return () => runFor(handleEvents, 1000 * 60 * 15, preProcessorName);
 }
 

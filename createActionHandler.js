@@ -1,11 +1,11 @@
 const R = require('ramda');
 const {runFor} = require('./utils');
-const {mainDb, publicDb} = require('./config');
+const {eventsDb, publicDb} = require('./config');
 
 const createActionHandler = actionHandlers => {
   const actionHandlersKeys = R.flatten(Object.values(actionHandlers).map(hs => Object.keys(hs)));
 	const getInProcessEvents = async() => {
-		const result = await mainDb.find({
+		const result = await eventsDb.find({
 			selector: {
 				type: "EVENT",
 				status: "processing"
@@ -30,7 +30,7 @@ const createActionHandler = actionHandlers => {
 	}
 
 	const markActionAsError = (event, err) => {
-		return mainDb.put(R.merge(event, {
+		return eventsDb.put(R.merge(event, {
 			status: "error",
 			error: err
 		}));
@@ -97,7 +97,7 @@ const createActionHandler = actionHandlers => {
 			}
 
 			if (updatedEvent !== event) {
-				await mainDb.put(updatedEvent);
+				await eventsDb.put(updatedEvent);
 			}
 
 		} catch (e) {
