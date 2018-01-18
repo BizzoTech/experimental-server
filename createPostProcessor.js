@@ -1,60 +1,74 @@
-const R = require('ramda');
-const {runFor} = require('./utils');
-const {eventsDb, publicDb} = require('./config');
+const R = require("ramda");
+const { runFor } = require("./utils");
+const { eventsDb, publicDb } = require("./config");
 
 const createPostProcessor = (postProcessorName, updateEvent) => {
-	const getEventsWaitingForPostProcessing = async() => {
-		const result = await eventsDb.find({
-			selector: {
-				type: "EVENT",
-				status: "postProcessing",
-				postProcessor: postProcessorName
-			},
-			sort: [
-				{
-					createdAt: "asc"
-				}
-			]
-		});
-		return result.docs;
-	}
+  const getEventsWaitingForPostProcessing = async () => {
+    const result = await eventsDb.find({
+      selector: {
+        type: "EVENT",
+        status: "postProcessing",
+        postProcessor: postProcessorName
+      },
+      sort: [
+        {
+          createdAt: "asc"
+        }
+      ]
+    });
+    return result.docs;
+  };
 
-	const markActionAsError = (event, err) => {
-		return eventsDb.put(R.merge(event, {
-			status: "error",
-			error: err
-		}));
-	}
+  const markActionAsError = (event, err) => {
+    return eventsDb.put(
+      R.merge(event, {
+        status: "error",
+        error: err
+      })
+    );
+  };
 
-	const handleAction = async(event) => {
-		const {action} = event;
-		try {
-			const currentPostProcessor = event.postProcessors.find(p => p.name === postProcessorName);
-			if (currentPostProcessor.status === "done") {
-				return;
-			}
+  const handleAction = async event => {
+    const { action } = event;
+    try {
+      const currentPostProcessor = event.postProcessors.find(
+        p => p.name === postProcessorName
+      );
+      if (currentPostProcessor.status === "done") {
+        return;
+      }
 
-			const updatedEvent = await updateEvent(event) || event;
+      const updatedEvent = (await updateEvent(event)) || event;
 
-			const currentPostProcessorIndex = event.postProcessors.indexOf(currentPostProcessor);
-			const updatedPostProcessor = R.merge(currentPostProcessor, {status: "done"});
-			const postProcessors = R.update(currentPostProcessorIndex, updatedPostProcessor, event.postProcessors);
-			await eventsDb.put(R.merge(updatedEvent, {postProcessors}));
-		} catch (e) {
-			console.log(e);
-			await markActionAsError(event, e);
-		}
-	}
+      const currentPostProcessorIndex = event.postProcessors.indexOf(
+        currentPostProcessor
+      );
+      const updatedPostProcessor = R.merge(currentPostProcessor, {
+        status: "done"
+      });
+      const postProcessors = R.update(
+        currentPostProcessorIndex,
+        updatedPostProcessor,
+        event.postProcessors
+      );
+      await eventsDb.put(R.merge(updatedEvent, { postProcessors }));
+    } catch (e) {
+      console.log(e);
+      await markActionAsError(event, e);
+    }
+  };
 
-	const handleEvents = async() => {
+  const handleEvents = async () => {
     const events = await getEventsWaitingForPostProcessing();
-    console.log("Events waiting for " + postProcessorName + " " + events.length);
+    console.log(
+      "Events waiting for " + postProcessorName + " " + events.length
+    );
     for (event of events) {
       await handleAction(event);
     }
-	}
+  };
 
-	return () => runFor(handleEvents, 1000 * 60 * 15, postProcessorName);
-}
+  return () => runFor(handleEvents, 1000 * 60 * 15, postProcessorName);
+};
 
 module.exports = createPostProcessor;

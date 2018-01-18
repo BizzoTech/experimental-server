@@ -1,7 +1,7 @@
-const sleep = require('sleep');
-const process = require('process');
+const sleep = require("sleep");
+const process = require("process");
 
-const runFor = async(fn, t, label) => {
+const runFor = async (fn, t, label) => {
   sleep.sleep(3);
   const startedAt = Date.now();
   while (true) {
@@ -12,7 +12,7 @@ const runFor = async(fn, t, label) => {
       sleep.sleep(3);
     } finally {
       const runningFor = Date.now() - startedAt;
-      if(runningFor > t){
+      if (runningFor > t) {
         console.log("Restarting " + (label || ""));
         process.exit();
       } else {
@@ -20,8 +20,8 @@ const runFor = async(fn, t, label) => {
       }
     }
   }
-}
+};
 
 module.exports = {
-	runFor
-}
+  runFor
+};

@@ -1,7 +1,7 @@
-const createPreProcessor = require('./createPreProcessor');
-const createPostProcessor = require('./createPostProcessor');
-const createActionHandler = require('./createActionHandler');
-const {runFor} = require('./utils');
+const createPreProcessor = require("./createPreProcessor");
+const createPostProcessor = require("./createPostProcessor");
+const createActionHandler = require("./createActionHandler");
+const { runFor } = require("./utils");
 
 const {
   mainDb,
@@ -12,12 +12,12 @@ const {
   publicDb,
   authDb,
   anonymousDb
-} = require('./config');
+} = require("./config");
 
 module.exports = {
-	createPreProcessor,
-	createPostProcessor,
-	createActionHandler,
+  createPreProcessor,
+  createPostProcessor,
+  createActionHandler,
   runFor,
   mainDb,
   eventsDb,
@@ -27,4 +27,4 @@ module.exports = {
   publicDb,
   authDb,
   anonymousDb
-}
+};

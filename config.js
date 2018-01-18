@@ -1,7 +1,7 @@
-const process = require('process');
+const process = require("process");
 
-const PouchDB = require('pouchdb');
-PouchDB.plugin(require('pouchdb-find'));
+const PouchDB = require("pouchdb");
+PouchDB.plugin(require("pouchdb-find"));
 
 const mainDbUrl = "http://main-db:5984/db";
 const eventsDbUrl = "http://events-db:5984/events";
@@ -14,16 +14,16 @@ const anonymousDbUrl = "http://anonymous-db:5984/anonymous";
 
 const createDB = dbUrl => {
   return new PouchDB(dbUrl, {
-  	ajax: {
-  		cache: false,
-  		timeout: 60000
-  	},
-  	auth: {
-  		username: process.env.COUCHDB_USER,
-  		password: process.env.COUCHDB_PASSWORD
-  	}
+    ajax: {
+      cache: false,
+      timeout: 60000
+    },
+    auth: {
+      username: process.env.COUCHDB_USER,
+      password: process.env.COUCHDB_PASSWORD
+    }
   });
-}
+};
 
 const mainDb = createDB(mainDbUrl);
 const eventsDb = createDB(eventsDbUrl);
@@ -43,4 +43,4 @@ module.exports = {
   publicDb,
   authDb,
   anonymousDb
-}
+};
