@@ -1,13 +1,15 @@
 const R = require("ramda");
 const { runFor } = require("./utils");
-const { eventsDb, publicDb } = require("./config");
+const { eventsDb, publicDb, createDB } = require("./config");
 
-const createActionHandler = actionHandlers => {
+const createActionHandler = (actionHandlers, eventsDbUrl, publicDbUrl) => {
+  const _eventsDb = eventsDbUrl ? createDB(eventsDbUrl) : eventsDb;
+  const _publicDb = publicDbUrl ? createDB(publicDbUrl) : publicDb;
   const actionHandlersKeys = R.flatten(
     Object.values(actionHandlers).map(hs => Object.keys(hs))
   );
   const getInProcessEvents = async () => {
-    const result = await eventsDb.find({
+    const result = await _eventsDb.find({
       selector: {
         type: "EVENT",
         status: "processing"
@@ -30,7 +32,7 @@ const createActionHandler = actionHandlers => {
   };
 
   const markActionAsError = (event, err) => {
-    return eventsDb.put(
+    return _eventsDb.put(
       R.merge(event, {
         status: "error",
         error: err
@@ -61,7 +63,7 @@ const createActionHandler = actionHandlers => {
 
       if (relevantDocsToAdd.length > 0) {
         for (d of relevantDocsToAdd) {
-          await publicDb
+          await _publicDb
             .get(d._id)
             .then(doc => {
               if (doc && doc._rev) {
@@ -76,7 +78,7 @@ const createActionHandler = actionHandlers => {
         }
       }
 
-      const relevantDocsToUpdate = (await publicDb.allDocs({
+      const relevantDocsToUpdate = (await _publicDb.allDocs({
         include_docs: true,
         keys: notAppliedOnDocIds.filter(
           docId => action.doc._id !== docId || action.doc._rev
@@ -95,7 +97,7 @@ const createActionHandler = actionHandlers => {
         .map(doc => actionHandlers[doc.type][action.type](doc, action))
         .filter(doc => !relevantDocs.includes(doc));
       const response =
-        updatedDocs.length > 0 ? await publicDb.bulkDocs(updatedDocs) : [];
+        updatedDocs.length > 0 ? await _publicDb.bulkDocs(updatedDocs) : [];
 
       const appliedOnData = [
         ...relevantDocs.filter(d => d).map(d => {
@@ -110,7 +112,7 @@ const createActionHandler = actionHandlers => {
       }
 
       if (updatedEvent !== event) {
-        await eventsDb.put(updatedEvent);
+        await _eventsDb.put(updatedEvent);
       }
     } catch (e) {
       console.log(e);

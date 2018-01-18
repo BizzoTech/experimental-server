@@ -35,6 +35,7 @@ const authDb = createDB(authDbUrl);
 const anonymousDb = createDB(anonymousDbUrl);
 
 module.exports = {
+  createDB,
   mainDb,
   eventsDb,
   notificationsDb,
