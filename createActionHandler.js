@@ -117,12 +117,12 @@ const createActionHandler = (actionHandlers, eventsDbUrl, publicDbUrl) => {
     } catch (e) {
       console.log(e);
       if (e === "Already added doc") {
-        await _eventsDb.put(
-          R.merge(event, {
-            status: "done",
-            error: err
-          })
-        );
+        await _eventsDb.put({
+          _id: event._id,
+          _rev: event._rev,
+          status: "deleted",
+          _deleted: true
+        });
         return;
       }
       await markActionAsError(event, e);
