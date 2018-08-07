@@ -116,6 +116,15 @@ const createActionHandler = (actionHandlers, eventsDbUrl, publicDbUrl) => {
       }
     } catch (e) {
       console.log(e);
+      if (e === "Already added doc") {
+        await _eventsDb.put(
+          R.merge(event, {
+            status: "done",
+            error: err
+          })
+        );
+        return;
+      }
       await markActionAsError(event, e);
     }
   };
